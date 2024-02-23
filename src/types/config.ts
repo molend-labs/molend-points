@@ -1,3 +1,5 @@
+import { JsonRpcProvider } from 'ethers';
+
 export interface Config {
   mode: {
     chainId: number;
@@ -27,4 +29,9 @@ export interface Config {
       };
     };
   };
+}
+
+export interface InitMode {
+  config: Config;
+  provider: JsonRpcProvider;
 }
