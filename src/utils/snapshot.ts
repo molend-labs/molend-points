@@ -89,7 +89,7 @@ export async function takeSnapshotForUsers({
     };
   });
 
-  await batchFetches(fetches, 1); // TODO batch size
+  await batchFetches(fetches);
 
   return {
     snapshots,
