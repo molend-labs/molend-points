@@ -11,3 +11,14 @@ export function sec2ms(sec: number): number {
 export async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export async function batchFetches<T>(fetches: (() => Promise<T>)[], batchSize = 10): Promise<T[]> {
+  fetches = Array.from(fetches);
+  const result: T[] = [];
+  while (fetches.length > 0) {
+    const slice = fetches.splice(0, batchSize).map((fetch) => fetch());
+    const batchResult = await Promise.all(slice);
+    result.push(...batchResult);
+  }
+  return result;
+}

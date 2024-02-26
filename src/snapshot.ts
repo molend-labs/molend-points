@@ -14,7 +14,10 @@ import { getReservesData } from './utils/contract';
 import { MODE_AVERAGE_BLOCK_TIME, ms2sec, sleep } from './utils/common';
 import { logger } from './service/logger';
 import BigNumber from 'bignumber.js';
-import { saveUserReservesSnapshotsFailures } from './database/models/user-reserves-snapshots-failure';
+import {
+  initUserReservesSnapshotsFailureModel,
+  saveUserReservesSnapshotsFailures,
+} from './database/models/user-reserves-snapshots-failure';
 
 BigNumber.config({
   DECIMAL_PLACES: 100,
@@ -23,6 +26,7 @@ BigNumber.config({
 
 async function prepare() {
   await initUserReservesSnapshotsModel();
+  await initUserReservesSnapshotsFailureModel();
 }
 
 async function takeSnapshots() {
@@ -90,29 +94,32 @@ async function takeSnapshots() {
       continue;
     }
 
+    // non-throwable function
+    const { snapshots, failures } = await takeSnapshotForUsers({
+      blockHeight: block.number,
+      blockTimestamp: block.timestamp,
+      users: users.map((user) => user.id),
+      reserves,
+    });
+
     try {
-      const { snapshots, failures } = await takeSnapshotForUsers({
-        blockHeight: block.number,
-        blockTimestamp: block.timestamp,
-        users: users.map((user) => user.id),
-        reserves,
-      });
-
-      const timeCost = Date.now() - startTime;
-
       await saveUserReservesSnapshots(snapshots);
       logger.info(
-        `Success save snapshots(${snapshots.length}) at block ${block.number}. Cost ${(ms2sec(timeCost) / 60).toFixed(
-          2
-        )} minutes`
+        `Success save snapshots(${snapshots.length}) at block ${block.number}. Cost ${(
+          ms2sec(Date.now() - startTime) / 60
+        ).toFixed(2)} minutes`
       );
+    } catch (e: any) {
+      await sendSlackError(`Failed to save snapshots at block ${block.number}: ${e}`);
+    }
 
+    try {
       if (failures.length !== 0) {
         await saveUserReservesSnapshotsFailures(failures);
         logger.info(`Success save snapshots failures at block ${block.number}`);
       }
     } catch (e: any) {
-      await sendSlackError(`Failed to save snapshots at block ${block.number}: ${e}`);
+      await sendSlackError(`Failed to save snapshots failure at block ${block.number}: ${e}`);
     }
   }
 }

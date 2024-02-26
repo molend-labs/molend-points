@@ -5,6 +5,7 @@ import BigNumber from 'bignumber.js';
 import { sendSlackError } from '../service/notification';
 import { SnapshotReserveData } from '../types/common';
 import { AggregatedReserveData } from '../types/contract';
+import { batchFetches } from './common';
 
 export async function takeSnapshotForUser({
   blockHeight,
@@ -65,28 +66,33 @@ export async function takeSnapshotForUsers({
   const snapshots: UserReservesSnapshot[] = [];
   const failures: UserReservesSnapshotsFailure[] = [];
 
-  for (const user of users) {
-    try {
-      const userSnapshots = await takeSnapshotForUser({
-        blockHeight,
-        blockTimestamp,
-        user,
-        reserves: await convertReserves(reserves, tokenPricesCache, tokenPricesDecimalsCache),
-      });
+  const fetches = users.map((user) => {
+    return async () => {
+      try {
+        const userSnapshots = await takeSnapshotForUser({
+          blockHeight,
+          blockTimestamp,
+          user,
+          reserves: await convertReserves(reserves, tokenPricesCache, tokenPricesDecimalsCache),
+        });
 
-      snapshots.push(...userSnapshots);
-    } catch (e: any) {
-      await sendSlackError(`Failed to take snapshot for user(${user}) at block ${blockHeight}: ${e}`);
-      const failure: UserReservesSnapshotsFailure = {
-        block_height: blockHeight,
-        block_timestamp: blockTimestamp,
-        user,
-        message: e.message,
-        resolved: false,
-      };
-      failures.push(failure);
-    }
-  }
+        snapshots.push(...userSnapshots);
+      } catch (e: any) {
+        await sendSlackError(`Failed to take snapshot for user(${user}) at block ${blockHeight}: ${e}`);
+        const failure: UserReservesSnapshotsFailure = {
+          block_height: blockHeight,
+          block_timestamp: blockTimestamp,
+          user,
+          message: e.message,
+          resolved: false,
+        };
+
+        failures.push(failure);
+      }
+    };
+  });
+
+  await batchFetches(fetches);
 
   return {
     snapshots,
