@@ -1,9 +1,9 @@
 import { DataTypes, Model, QueryTypes } from 'sequelize';
 import { getDB } from '../postgres';
 import { ms2sec, sec2ms } from '../../utils/common';
-import { UserReservesSnapshotsFailure, UserReservesSnapshot } from '../../types/models';
+import { UserReservesSnapshotsFailure } from '../../types/models';
 
-export class UserReservesSnapshotsFailureModel extends Model {
+export class UserReservesSnapshotsFailuresModel extends Model {
   declare block_height?: string;
   declare block_timestamp?: number; // in seconds
   declare user?: string;
@@ -11,10 +11,10 @@ export class UserReservesSnapshotsFailureModel extends Model {
   declare resolved?: boolean;
 }
 
-export async function initUserReservesSnapshotsFailureModel() {
+export async function initUserReservesSnapshotsFailuresModel() {
   const db = await getDB();
 
-  UserReservesSnapshotsFailureModel.init(
+  UserReservesSnapshotsFailuresModel.init(
     {
       block_height: {
         type: DataTypes.DECIMAL,
@@ -42,16 +42,16 @@ export async function initUserReservesSnapshotsFailureModel() {
     },
     {
       timestamps: false,
-      tableName: 'user_reserves_snapshots_failure',
+      tableName: 'user_reserves_snapshots_failures',
       sequelize: db,
     }
   );
 
-  await UserReservesSnapshotsFailureModel.sync();
+  await UserReservesSnapshotsFailuresModel.sync();
 }
 
 export async function getUnresolvedUserReservesSnapshotsFailures(): Promise<UserReservesSnapshotsFailure[]> {
-  const sql = `select * from user_reserves_snapshots_failure where resolved = false`;
+  const sql = `select * from user_reserves_snapshots_failures where resolved = false`;
 
   const db = await getDB();
 
@@ -61,7 +61,7 @@ export async function getUnresolvedUserReservesSnapshotsFailures(): Promise<User
 }
 
 export async function saveUserReservesSnapshotsFailures(failures: UserReservesSnapshotsFailure[]) {
-  await UserReservesSnapshotsFailureModel.bulkCreate(failures as any[], {
+  await UserReservesSnapshotsFailuresModel.bulkCreate(failures as any[], {
     ignoreDuplicates: true,
   });
 }

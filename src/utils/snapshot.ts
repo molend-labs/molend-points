@@ -60,9 +60,6 @@ export async function takeSnapshotForUsers({
   snapshots: UserReservesSnapshot[];
   failures: UserReservesSnapshotsFailure[];
 }> {
-  const tokenPricesCache: Record<string, bigint> = {};
-  const tokenPricesDecimalsCache: Record<string, bigint> = {};
-
   const snapshots: UserReservesSnapshot[] = [];
   const failures: UserReservesSnapshotsFailure[] = [];
 
@@ -73,7 +70,7 @@ export async function takeSnapshotForUsers({
           blockHeight,
           blockTimestamp,
           user,
-          reserves: await convertReserves(reserves, tokenPricesCache, tokenPricesDecimalsCache),
+          reserves: await convertReserves(reserves),
         });
 
         snapshots.push(...userSnapshots);
@@ -92,7 +89,7 @@ export async function takeSnapshotForUsers({
     };
   });
 
-  await batchFetches(fetches);
+  await batchFetches(fetches, 1); // TODO batch size
 
   return {
     snapshots,
@@ -100,27 +97,12 @@ export async function takeSnapshotForUsers({
   };
 }
 
-async function convertReserves(
-  reserves: AggregatedReserveData[],
-  tokenPricesCache: Record<string, bigint>,
-  tokenPricesDecimalsCache: Record<string, bigint>
-): Promise<SnapshotReserveData[]> {
+async function convertReserves(reserves: AggregatedReserveData[]): Promise<SnapshotReserveData[]> {
   const snapshotReserves: SnapshotReserveData[] = [];
 
   for (const reserve of reserves) {
-    const tokenPriceUsd =
-      tokenPricesCache[reserve.underlyingAsset] ??
-      (await getAssetPrice(reserve.underlyingAsset).then((price) => {
-        tokenPricesCache[reserve.underlyingAsset] = price;
-        return price;
-      }));
-
-    const tokenPriceDecimals =
-      tokenPricesDecimalsCache[reserve.underlyingAsset] ??
-      (await getAssetPriceDecimals(reserve.underlyingAsset).then((decimals) => {
-        tokenPricesDecimalsCache[reserve.underlyingAsset] = decimals;
-        return decimals;
-      }));
+    const tokenPriceUsd = await getAssetPrice(reserve.underlyingAsset);
+    const tokenPriceDecimals = await getAssetPriceDecimals(reserve.underlyingAsset);
 
     const _reserve: SnapshotReserveData = {
       token: reserve.underlyingAsset,

@@ -15,9 +15,9 @@ import { MODE_AVERAGE_BLOCK_TIME, ms2sec, sleep } from './utils/common';
 import { logger } from './service/logger';
 import BigNumber from 'bignumber.js';
 import {
-  initUserReservesSnapshotsFailureModel,
+  initUserReservesSnapshotsFailuresModel,
   saveUserReservesSnapshotsFailures,
-} from './database/models/user-reserves-snapshots-failure';
+} from './database/models/user-reserves-snapshots-failures';
 
 BigNumber.config({
   DECIMAL_PLACES: 100,
@@ -26,7 +26,7 @@ BigNumber.config({
 
 async function prepare() {
   await initUserReservesSnapshotsModel();
-  await initUserReservesSnapshotsFailureModel();
+  await initUserReservesSnapshotsFailuresModel();
 }
 
 async function takeSnapshots() {
