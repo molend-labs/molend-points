@@ -15,7 +15,8 @@
     "cross-fetch": "^4.0.0",
     "ethers": "^6.6.2",
     "pg": "^8.10.0",
-    "sequelize": "^6.29.0"
+    "sequelize": "^6.29.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",

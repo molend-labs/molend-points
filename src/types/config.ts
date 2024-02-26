@@ -2,11 +2,15 @@ import { JsonRpcProvider } from 'ethers';
 
 export interface Config {
   mode: {
+    chainName: 'mode-sepolia' | 'mode-mainnet';
     chainId: number;
     rpcUrl: string;
   };
   molend: {
     uiPoolDataProviderAddress: string;
+    LendingPoolAddressesProviderAddress: string;
+    walletBalanceProviderAddress: string;
+    aaveOracleAddress: string;
   };
   subgraph: {
     apiUrl: string;
@@ -29,6 +33,13 @@ export interface Config {
       };
     };
   };
+  settings: {
+    snapshotStartBlock: number;
+    snapshotBlockInterval: number;
+    depositedPointsMultiplier: number;
+    borrowedPointsMultiplier: number;
+  };
+  slackWebhook?: string;
 }
 
 export interface InitMode {

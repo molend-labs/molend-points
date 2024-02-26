@@ -5,3 +5,7 @@ export function ms2sec(ms: number): number {
 export function sec2ms(sec: number): number {
   return sec * 1000;
 }
+
+export async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}

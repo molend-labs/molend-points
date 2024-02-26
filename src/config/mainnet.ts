@@ -3,14 +3,18 @@ import { requiredEnv } from './helper';
 
 const config: Config = {
   mode: {
-    rpcUrl: '',
+    chainName: 'mode-mainnet',
     chainId: 34443,
+    rpcUrl: '', // TODO
   },
   molend: {
-    uiPoolDataProviderAddress: '',
+    uiPoolDataProviderAddress: '', // TODO
+    LendingPoolAddressesProviderAddress: '', // TODO
+    walletBalanceProviderAddress: '', // TODO
+    aaveOracleAddress: '', // TODO
   },
   subgraph: {
-    apiUrl: '',
+    apiUrl: '', // TODO
   },
   database: {
     host: requiredEnv('DB_HOST'),
@@ -29,6 +33,12 @@ const config: Config = {
         rejectUnauthorized: false,
       },
     },
+  },
+  settings: {
+    snapshotStartBlock: 0, // TODO
+    snapshotBlockInterval: 10800, // around 6 hours
+    depositedPointsMultiplier: 0.03, // per interval
+    borrowedPointsMultiplier: 0.3, // per interval
   },
 };
 
