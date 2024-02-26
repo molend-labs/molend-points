@@ -11,7 +11,7 @@ import { takeSnapshotForUsers } from './utils/snapshot';
 import { Block } from 'ethers';
 import { AggregatedReserveData } from './types/contract';
 import { getReservesData } from './utils/contract';
-import { MODE_AVERAGE_BLOCK_TIME, sleep } from './utils/common';
+import { MODE_AVERAGE_BLOCK_TIME, ms2sec, sleep } from './utils/common';
 import { logger } from './service/logger';
 import BigNumber from 'bignumber.js';
 import { saveUserReservesSnapshotsFailures } from './database/models/user-reserves-snapshots-failure';
@@ -30,6 +30,8 @@ async function takeSnapshots() {
   const { provider, config } = await initMode();
 
   while (true) {
+    const startTime = Date.now();
+
     let nextSnapshotBlockHeight: number;
     try {
       const latestSnapshotBlockHeight = await getLatestSnapshotBlockHeight();
@@ -96,8 +98,14 @@ async function takeSnapshots() {
         reserves,
       });
 
+      const timeCost = Date.now() - startTime;
+
       await saveUserReservesSnapshots(snapshots);
-      logger.info(`Success save snapshots at block ${block.number}`);
+      logger.info(
+        `Success save snapshots(${snapshots.length}) at block ${block.number}. Cost ${(ms2sec(timeCost) / 60).toFixed(
+          2
+        )} minutes`
+      );
 
       if (failures.length !== 0) {
         await saveUserReservesSnapshotsFailures(failures);
