@@ -11,12 +11,18 @@ import { UserReservesSnapshot } from './types/models';
 import { takeSnapshotForUser } from './utils/snapshot';
 import { Block } from 'ethers';
 import { AggregatedReserveData } from './types/contract';
-import { getAssetPrice, getReservesData } from './utils/contract';
-import { sleep } from './utils/common';
+import { getAssetPrice, getAssetPriceDecimals, getReservesData } from './utils/contract';
+import { MODE_AVERAGE_BLOCK_TIME, sleep } from './utils/common';
 import { logger } from './service/logger';
+import BigNumber from 'bignumber.js';
+
+BigNumber.config({
+  DECIMAL_PLACES: 100,
+  ROUNDING_MODE: BigNumber.ROUND_DOWN,
+});
 
 async function main() {
-  // await prepare();
+  await prepare();
   await takeSnapshots();
 }
 
@@ -36,6 +42,19 @@ async function takeSnapshots() {
       nextSnapshotBlockHeight = latestSnapshotBlockHeight
         ? latestSnapshotBlockHeight + config.settings.snapshotBlockInterval
         : config.settings.snapshotStartBlock;
+
+      const block = await provider.getBlock('latest');
+      if (!block) {
+        throw Error(`Latest block not found`);
+      }
+
+      if (block.number < nextSnapshotBlockHeight) {
+        await sleep(10 * MODE_AVERAGE_BLOCK_TIME);
+        logger.info(
+          `Current block: ${block.number}. Next snapshot block: ${nextSnapshotBlockHeight}. Waiting for next snapshot...`
+        );
+        continue;
+      }
     } catch (e: any) {
       await sendSlackError(`Failed to get next snapshot block height: ${e}`);
       await sleep(1000);
@@ -77,10 +96,12 @@ async function takeSnapshots() {
 
     const snapshots: UserReservesSnapshot[] = [];
     const tokenPrices: Record<string, bigint> = {};
+    const tokenPricesDecimals: Record<string, bigint> = {};
 
     for (const user of users) {
       try {
         const _reserves = [];
+
         for (const reserve of reserves) {
           const tokenPriceUsd =
             tokenPrices[reserve.underlyingAsset] ??
@@ -89,10 +110,18 @@ async function takeSnapshots() {
               return price;
             }));
 
+          const tokenPriceDecimals =
+            tokenPricesDecimals[reserve.underlyingAsset] ??
+            (await getAssetPriceDecimals(reserve.underlyingAsset).then((decimals) => {
+              tokenPricesDecimals[reserve.underlyingAsset] = decimals;
+              return decimals;
+            }));
+
           const _reserve = {
             token: reserve.underlyingAsset,
+            tokenDecimals: Number(reserve.decimals),
             tokenSymbol: reserve.symbol,
-            tokenPriceUsd: String(tokenPriceUsd),
+            tokenPriceUsd: BigNumber(String(tokenPriceUsd)).shiftedBy(Number(-tokenPriceDecimals)).toFixed(8),
             aToken: reserve.aTokenAddress,
             vToken: reserve.variableDebtTokenAddress,
           };
@@ -109,7 +138,7 @@ async function takeSnapshots() {
 
         snapshots.push(...userSnapshots);
       } catch (e: any) {
-        await sendSlackError(`Failed to take snapshot for user(${user.id}): ${e}`);
+        await sendSlackError(`Failed to take snapshot for user(${user.id}) at block ${block.number}: ${e}`);
         // TODO record error
       }
     }

@@ -28,12 +28,12 @@ const config: Config = {
       min: 0,
       idle: 10000,
     },
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
+    // dialectOptions: {
+    //   ssl: {
+    //     require: false,
+    //     rejectUnauthorized: false,
+    //   },
+    // },
   },
   settings: {
     snapshotStartBlock: 10100000,

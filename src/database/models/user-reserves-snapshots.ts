@@ -72,7 +72,7 @@ export async function initUserReservesSnapshotsModel() {
 }
 
 export async function getLatestSnapshotBlockHeight(): Promise<number | undefined> {
-  const sql = `select max(block_height) from user_reserves_snapshots`;
+  const sql = `select max(block_height) as block_height from user_reserves_snapshots`;
 
   const db = await getDB();
 

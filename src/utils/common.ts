@@ -1,3 +1,5 @@
+export const MODE_AVERAGE_BLOCK_TIME = 2000; // 2s
+
 export function ms2sec(ms: number): number {
   return Math.floor(ms / 1000);
 }

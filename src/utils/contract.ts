@@ -4,6 +4,7 @@ import { Contract } from 'ethers';
 import UiPoolDataProviderAbi from '../../abi/UiPoolDataProvider.json';
 import WalletBalanceProviderAbi from '../../abi/WalletBalanceProvider.json';
 import AaveOracleAbi from '../../abi/AaveOracle.json';
+import ChainlinkAggregatorAbi from '../../abi/ChainlinkAggregator.json';
 
 async function getUiPoolDataProviderContract(): Promise<Contract> {
   const config = await getConfig();
@@ -21,6 +22,11 @@ async function getAaveOracleContract(): Promise<Contract> {
   const config = await getConfig();
   const { provider } = await initMode();
   return new Contract(config.molend.aaveOracleAddress, AaveOracleAbi.abi, provider);
+}
+
+async function getChainlinkAggregatorContract(address: string): Promise<Contract> {
+  const { provider } = await initMode();
+  return new Contract(address, ChainlinkAggregatorAbi.abi, provider);
 }
 
 export async function getReservesData(options: { blockTag?: number } = {}): Promise<AggregatedReserveData[]> {
@@ -58,4 +64,11 @@ export async function getUserReservesAmount(
 export async function getAssetPrice(token: string): Promise<bigint> {
   const contract = await getAaveOracleContract();
   return contract.getAssetPrice(token);
+}
+
+export async function getAssetPriceDecimals(token: string): Promise<bigint> {
+  let contract = await getAaveOracleContract();
+  const source = await contract.getSourceOfAsset(token);
+  contract = await getChainlinkAggregatorContract(source);
+  return contract.decimals();
 }
