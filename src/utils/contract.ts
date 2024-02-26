@@ -7,20 +7,17 @@ import AaveOracleAbi from '../../abi/AaveOracle.json';
 import ChainlinkAggregatorAbi from '../../abi/ChainlinkAggregator.json';
 
 async function getUiPoolDataProviderContract(): Promise<Contract> {
-  const config = await getConfig();
-  const { provider } = await initMode();
+  const { provider, config } = await initMode();
   return new Contract(config.molend.uiPoolDataProviderAddress, UiPoolDataProviderAbi.abi, provider);
 }
 
 async function getWalletBalanceProviderContract(): Promise<Contract> {
-  const config = await getConfig();
-  const { provider } = await initMode();
+  const { provider, config } = await initMode();
   return new Contract(config.molend.walletBalanceProviderAddress, WalletBalanceProviderAbi.abi, provider);
 }
 
 async function getAaveOracleContract(): Promise<Contract> {
-  const config = await getConfig();
-  const { provider } = await initMode();
+  const { provider, config } = await initMode();
   return new Contract(config.molend.aaveOracleAddress, AaveOracleAbi.abi, provider);
 }
 

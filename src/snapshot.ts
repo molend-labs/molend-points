@@ -3,7 +3,7 @@ import {
   initUserReservesSnapshotsModel,
   saveUserReservesSnapshots,
 } from './database/models/user-reserves-snapshots';
-import { getConfig, initMode } from './service/mode';
+import { initMode } from './service/mode';
 import { getSubGraphClient } from './subgraph/client';
 import { User } from './types/subgraph-data';
 import { sendSlackError } from './service/notification';
@@ -21,19 +21,13 @@ BigNumber.config({
   ROUNDING_MODE: BigNumber.ROUND_DOWN,
 });
 
-async function main() {
-  await prepare();
-  await takeSnapshots();
-}
-
 async function prepare() {
   await initUserReservesSnapshotsModel();
 }
 
 async function takeSnapshots() {
-  const config = await getConfig();
   const client = await getSubGraphClient();
-  const { provider } = await initMode();
+  const { provider, config } = await initMode();
 
   while (true) {
     let nextSnapshotBlockHeight: number;
@@ -152,4 +146,9 @@ async function takeSnapshots() {
   }
 }
 
-void main();
+async function main() {
+  await prepare();
+  await takeSnapshots();
+}
+
+void main(); // invoke main
