@@ -10,3 +10,11 @@ export interface UserReservesSnapshot {
   deposited_points_multiplier: string;
   borrowed_points_multiplier: string;
 }
+
+export interface UserReservesSnapshotsFailure {
+  block_height: number;
+  block_timestamp: number; // in seconds
+  user: string;
+  message: string;
+  resolved: boolean;
+}

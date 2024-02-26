@@ -7,14 +7,14 @@ import { initMode } from './service/mode';
 import { getSubGraphClient } from './subgraph/client';
 import { User } from './types/subgraph-data';
 import { sendSlackError } from './service/notification';
-import { UserReservesSnapshot } from './types/models';
-import { takeSnapshotForUser } from './utils/snapshot';
+import { takeSnapshotForUsers } from './utils/snapshot';
 import { Block } from 'ethers';
 import { AggregatedReserveData } from './types/contract';
-import { getAssetPrice, getAssetPriceDecimals, getReservesData } from './utils/contract';
+import { getReservesData } from './utils/contract';
 import { MODE_AVERAGE_BLOCK_TIME, sleep } from './utils/common';
 import { logger } from './service/logger';
 import BigNumber from 'bignumber.js';
+import { saveUserReservesSnapshotsFailures } from './database/models/user-reserves-snapshots-failure';
 
 BigNumber.config({
   DECIMAL_PLACES: 100,
@@ -88,60 +88,23 @@ async function takeSnapshots() {
       continue;
     }
 
-    const snapshots: UserReservesSnapshot[] = [];
-    const tokenPrices: Record<string, bigint> = {};
-    const tokenPricesDecimals: Record<string, bigint> = {};
-
-    for (const user of users) {
-      try {
-        const _reserves = [];
-
-        for (const reserve of reserves) {
-          const tokenPriceUsd =
-            tokenPrices[reserve.underlyingAsset] ??
-            (await getAssetPrice(reserve.underlyingAsset).then((price) => {
-              tokenPrices[reserve.underlyingAsset] = price;
-              return price;
-            }));
-
-          const tokenPriceDecimals =
-            tokenPricesDecimals[reserve.underlyingAsset] ??
-            (await getAssetPriceDecimals(reserve.underlyingAsset).then((decimals) => {
-              tokenPricesDecimals[reserve.underlyingAsset] = decimals;
-              return decimals;
-            }));
-
-          const _reserve = {
-            token: reserve.underlyingAsset,
-            tokenDecimals: Number(reserve.decimals),
-            tokenSymbol: reserve.symbol,
-            tokenPriceUsd: BigNumber(String(tokenPriceUsd)).shiftedBy(Number(-tokenPriceDecimals)).toFixed(8),
-            aToken: reserve.aTokenAddress,
-            vToken: reserve.variableDebtTokenAddress,
-          };
-
-          _reserves.push(_reserve);
-        }
-
-        const userSnapshots = await takeSnapshotForUser({
-          blockHeight: block.number,
-          blockTimestamp: block.timestamp,
-          user: user.id,
-          reserves: _reserves,
-        });
-
-        snapshots.push(...userSnapshots);
-      } catch (e: any) {
-        await sendSlackError(`Failed to take snapshot for user(${user.id}) at block ${block.number}: ${e}`);
-        // TODO record error
-      }
-    }
-
     try {
+      const { snapshots, failures } = await takeSnapshotForUsers({
+        blockHeight: block.number,
+        blockTimestamp: block.timestamp,
+        users: users.map((user) => user.id),
+        reserves,
+      });
+
       await saveUserReservesSnapshots(snapshots);
       logger.info(`Success save snapshots at block ${block.number}`);
+
+      if (failures.length !== 0) {
+        await saveUserReservesSnapshotsFailures(failures);
+        logger.info(`Success save snapshots failures at block ${block.number}`);
+      }
     } catch (e: any) {
-      await sendSlackError(`Failed to save snapshots at block ${block.number}`);
+      await sendSlackError(`Failed to save snapshots at block ${block.number}: ${e}`);
     }
   }
 }
