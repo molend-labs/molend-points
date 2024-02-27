@@ -29,7 +29,7 @@ async function prepare() {
   await initUserReservesSnapshotsFailuresModel();
 }
 
-async function takeSnapshots() {
+async function takeAndSaveSnapshots() {
   const client = await getSubGraphClient();
   const { provider } = await initMode();
 
@@ -44,7 +44,8 @@ async function takeSnapshots() {
         logger.info(
           `Next snapshot block: ${nextSnapshotBlockHeight}, current block: ${latestBlock.number}. Waiting for snapshot...`
         );
-        await sleep(10 * MODE_AVERAGE_BLOCK_TIME);
+        await sleep(30 * MODE_AVERAGE_BLOCK_TIME);
+        continue;
       }
     } catch (e: any) {
       await sendSlackError(`Failed to get next snapshot block height: ${e}`);
@@ -166,7 +167,7 @@ async function resolveSnapshotsFailures() {
 
 async function main() {
   await prepare();
-  void takeSnapshots();
+  void takeAndSaveSnapshots();
   void resolveSnapshotsFailures();
 }
 
