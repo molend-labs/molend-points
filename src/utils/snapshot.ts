@@ -70,7 +70,7 @@ export async function takeSnapshotForUsers({
           blockHeight,
           blockTimestamp,
           user,
-          reserves: await convertReserves(reserves),
+          reserves: await transformReserves(reserves),
         });
 
         snapshots.push(...userSnapshots);
@@ -97,7 +97,7 @@ export async function takeSnapshotForUsers({
   };
 }
 
-async function convertReserves(reserves: AggregatedReserveData[]): Promise<SnapshotReserveData[]> {
+async function transformReserves(reserves: AggregatedReserveData[]): Promise<SnapshotReserveData[]> {
   const snapshotReserves: SnapshotReserveData[] = [];
 
   for (const reserve of reserves) {
