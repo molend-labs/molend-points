@@ -77,9 +77,9 @@ async function takeAndSaveSnapshots() {
     try {
       const num = await takeAndSaveSnapshotsAt(block, users);
       logger.info(
-        `Succeeded to take snapshot${num} at block ${block.number}. Cost ${(
-          ms2sec(Date.now() - startTime) / 60
-        ).toFixed(2)} minutes`
+        `Succeeded to take snapshots(${users.length} users with total ${num} snapshots) at block ${
+          block.number
+        }. Cost ${(ms2sec(Date.now() - startTime) / 60).toFixed(2)} minutes`
       );
     } catch (e: any) {
       await sendSlackError(`Failed to take snapshot at block ${block.number}`);
@@ -152,11 +152,11 @@ async function resolveFailuresAndRetakeAndSaveSnapshots() {
 
         if (num !== 0) {
           await resolveSnapshotsFailure(failure.block_height, failure.user);
-          logger.info(`Succeeded to resolve snapshot failure for ${failure.user} at block ${failure.block_height}`);
+          logger.info(`Succeeded to resolve snapshots failure for ${failure.user} at block ${failure.block_height}`);
         }
       }
     } catch (e: any) {
-      await sendSlackError(`Failed to resolve snapshot failure: ${e}`);
+      await sendSlackError(`Failed to resolve snapshots failure: ${e}`);
     }
   }
 }
