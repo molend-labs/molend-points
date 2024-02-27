@@ -4,10 +4,10 @@ export interface ResponseResult<T> {
   data?: T;
 }
 
-export interface PointsParams {
+export interface UserPointsParams {
   user: string;
 }
 
-export interface PointsData {
+export interface UserPointsData {
   points: string;
 }
