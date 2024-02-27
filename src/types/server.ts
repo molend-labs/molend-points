@@ -5,7 +5,7 @@ export interface ResponseResult<T> {
 }
 
 export interface PointsParams {
-  user?: string;
+  user: string;
 }
 
 export interface PointsData {

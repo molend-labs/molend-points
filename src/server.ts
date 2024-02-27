@@ -3,6 +3,8 @@ import cors from 'cors';
 import { calcUserPoints } from './database/models/user-reserves-snapshots';
 import { PointsData, PointsParams, ResponseResult } from './types/server';
 import { getConfig } from './service/mode';
+import { logger } from './service/logger';
+import { ethers } from 'ethers';
 
 async function main() {
   const config = await getConfig();
@@ -14,12 +16,19 @@ async function main() {
 
   app.use(cors({ origin: '*' }));
 
-  app.get('points', async (req: Request<PointsParams>, res: Response<ResponseResult<PointsData>>) => {
+  app.get('/', async (_, res) => {
+    res.send('Molend Points API Server');
+  });
+
+  app.get('/points/:user', async (req: Request<PointsParams>, res: Response<ResponseResult<PointsData>>) => {
     const user = req.params.user;
-    if (!user) {
+
+    logger.info(`Fetch to '/points/${user}'`);
+
+    if (!ethers.isAddress(user)) {
       res.status(400).send({
         success: false,
-        message: `Missing param 'user'`,
+        message: `Invalid user address`,
       });
       return;
     }
@@ -34,14 +43,18 @@ async function main() {
         },
       });
     } catch (e: any) {
+      const message = `Failed to calculate user points: ${e.message}`;
+      logger.error(message);
       res.status(500).send({
         success: false,
-        message: 'Failed to calculate user points',
+        message,
       });
     }
   });
 
   app.listen(config.server.port);
+
+  logger.info(`Server start at port: ${config.server.port}`);
 }
 
 void main();
