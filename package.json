@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Molend Points",
   "scripts": {
+    "snapshot:testnet": "ENV=testnet ts-node src/snapshot.ts",
+    "snapshot:mainnet": "ENV=mainnet node dist/snapshot.js",
+    "server:testnet": "ENV=testnet ts-node src/server.ts",
+    "server:mainnet": "ENV=mainnet node dist/server.js",
     "build": "rm -rf dist && tsc",
     "lint": "eslint src/**/*.ts --fix",
     "prettier": "prettier src/**/*.ts --write",

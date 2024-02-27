@@ -29,6 +29,7 @@ const config: Config = {
     },
     dialectOptions: {
       ssl: {
+        // comments this if run locally
         require: true,
         rejectUnauthorized: false,
       },

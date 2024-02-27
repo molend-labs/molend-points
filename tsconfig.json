@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
+    "rootDir": "src",
     "outDir": "dist",
     "importHelpers": true,
     // output .d.ts declaration files for consumers

@@ -1,10 +1,10 @@
 import { AggregatedReserveData } from '../types/contract';
 import { getConfig, initMode } from '../service/mode';
 import { Contract } from 'ethers';
-import UiPoolDataProviderAbi from '../../abi/UiPoolDataProvider.json';
-import WalletBalanceProviderAbi from '../../abi/WalletBalanceProvider.json';
-import AaveOracleAbi from '../../abi/AaveOracle.json';
-import ChainlinkAggregatorAbi from '../../abi/ChainlinkAggregator.json';
+import UiPoolDataProviderAbi from '../abi/UiPoolDataProvider.json';
+import WalletBalanceProviderAbi from '../abi/WalletBalanceProvider.json';
+import AaveOracleAbi from '../abi/AaveOracle.json';
+import ChainlinkAggregatorAbi from '../abi/ChainlinkAggregator.json';
 
 async function getUiPoolDataProviderContract(): Promise<Contract> {
   const { provider, config } = await initMode();
