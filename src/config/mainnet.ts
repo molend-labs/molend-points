@@ -18,7 +18,7 @@ const config: Config = {
   },
   database: {
     host: requiredEnv('DB_HOST'),
-    port: parseInt(requiredEnv('DB_PORT')),
+    port: Number(requiredEnv('DB_PORT')),
     username: requiredEnv('DB_USERNAME'),
     password: requiredEnv('DB_PASSWORD'),
     database: 'molend-mainnet',
@@ -39,6 +39,9 @@ const config: Config = {
     snapshotBlockInterval: 10800, // around 6 hours
     depositedPointsMultiplier: 0.03, // per interval
     borrowedPointsMultiplier: 0.3, // per interval
+  },
+  server: {
+    port: Number(requiredEnv('SERVER_PORT')),
   },
 };
 

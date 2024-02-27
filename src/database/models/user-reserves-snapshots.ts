@@ -1,7 +1,7 @@
 import { DataTypes, Model, QueryTypes } from 'sequelize';
 import { getDB } from '../postgres';
 import { ms2sec, sec2ms } from '../../utils/common';
-import { UserReservesSnapshot } from '../../types/models';
+import { UserPoints, UserReservesSnapshot } from '../../types/models';
 
 export class UserReservesSnapshotsModel extends Model {
   declare block_height?: string;
@@ -90,5 +90,46 @@ export async function getLastSnapshotBlockHeight(): Promise<number | undefined> 
 export async function saveUserReservesSnapshots(snapshots: UserReservesSnapshot[]) {
   await UserReservesSnapshotsModel.bulkCreate(snapshots as any[], {
     ignoreDuplicates: true,
+  });
+}
+
+export async function calcUserPoints(user: string): Promise<string> {
+  const db = await getDB();
+
+  const sql = `
+    select sum(
+      token_price_usd * (
+        deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier
+      )
+    ) as points
+    from user_reserves_snapshots
+    where "user" = $user
+  `;
+
+  const data = await db.query<{ points: string | null }>(sql, {
+    type: QueryTypes.SELECT,
+    bind: {
+      user,
+    },
+  });
+
+  return data[0].points ?? '0';
+}
+
+export async function calcUsersPoints(): Promise<UserPoints[]> {
+  const db = await getDB();
+
+  const sql = `
+    select "user", sum(
+      token_price_usd * (
+        deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier
+      )
+    ) as points
+    from user_reserves_snapshots
+    group by "user"
+  `;
+
+  return db.query<UserPoints>(sql, {
+    type: QueryTypes.SELECT,
   });
 }

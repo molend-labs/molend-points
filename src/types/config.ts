@@ -39,6 +39,9 @@ export interface Config {
     depositedPointsMultiplier: number;
     borrowedPointsMultiplier: number;
   };
+  server?: {
+    port: number;
+  };
   slackWebhook?: string;
 }
 
