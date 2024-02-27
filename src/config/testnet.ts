@@ -30,7 +30,7 @@ const config: Config = {
     },
     // dialectOptions: {
     //   ssl: {
-    //     require: false,
+    //     require: true,
     //     rejectUnauthorized: false,
     //   },
     // },
