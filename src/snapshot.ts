@@ -49,13 +49,12 @@ async function takeAndSaveSnapshots() {
       continue;
     }
 
-    let block: Block;
+    let block: Block | null;
     try {
-      const _block = await provider.getBlock(nextSnapshotBlockHeight);
-      if (!_block) {
+      block = await provider.getBlock(nextSnapshotBlockHeight);
+      if (!block) {
         throw Error(`Block ${nextSnapshotBlockHeight} not found`);
       }
-      block = _block;
     } catch (e: any) {
       await sendSlackError(`Failed to get block(${nextSnapshotBlockHeight}): ${e}`);
       await sleep(1000);
