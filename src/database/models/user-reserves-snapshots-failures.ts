@@ -50,17 +50,19 @@ export async function initUserReservesSnapshotsFailuresModel() {
   await UserReservesSnapshotsFailuresModel.sync();
 }
 
-export async function getUnresolvedUserReservesSnapshotsFailures(): Promise<UserReservesSnapshotsFailure[]> {
-  const sql = `select * from user_reserves_snapshots_failures where resolved = false`;
-
+export async function getUnresolvedSnapshotsFailures(): Promise<UserReservesSnapshotsFailure[]> {
   const db = await getDB();
+
+  const sql = `
+    select * from user_reserves_snapshots_failures where resolved = false;
+  `;
 
   return db.query<UserReservesSnapshotsFailure>(sql, {
     type: QueryTypes.SELECT,
   });
 }
 
-export async function resolveUserReservesSnapshotsFailure(blockHeight: string, user: string) {
+export async function resolveSnapshotsFailure(blockHeight: string, user: string) {
   await UserReservesSnapshotsFailuresModel.update(
     {
       resolved: true,
@@ -78,7 +80,7 @@ export async function resolveUserReservesSnapshotsFailure(blockHeight: string, u
   );
 }
 
-export async function saveUserReservesSnapshotsFailures(failures: UserReservesSnapshotsFailure[]) {
+export async function saveSnapshotsFailures(failures: UserReservesSnapshotsFailure[]) {
   await UserReservesSnapshotsFailuresModel.bulkCreate(failures as any[], {
     ignoreDuplicates: true,
   });

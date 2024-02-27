@@ -1,7 +1,7 @@
 import {
-  getLastSnapshotBlockHeight,
+  getLastSnapshotsBlockHeight,
   initUserReservesSnapshotsModel,
-  saveUserReservesSnapshots,
+  saveSnapshots,
 } from './database/models/user-reserves-snapshots';
 import { getConfig, initMode } from './service/mode';
 import { getSubGraphClient } from './subgraph/client';
@@ -11,18 +11,12 @@ import { Block } from 'ethers';
 import { getReservesData } from './utils/contract';
 import { MODE_AVERAGE_BLOCK_TIME, ms2sec, sleep } from './utils/common';
 import { logger } from './service/logger';
-import BigNumber from 'bignumber.js';
 import {
-  getUnresolvedUserReservesSnapshotsFailures,
+  getUnresolvedSnapshotsFailures,
   initUserReservesSnapshotsFailuresModel,
-  resolveUserReservesSnapshotsFailure,
-  saveUserReservesSnapshotsFailures,
+  resolveSnapshotsFailure,
+  saveSnapshotsFailures,
 } from './database/models/user-reserves-snapshots-failures';
-
-BigNumber.config({
-  DECIMAL_PLACES: 100,
-  ROUNDING_MODE: BigNumber.ROUND_DOWN,
-});
 
 async function prepare() {
   await initUserReservesSnapshotsModel();
@@ -39,7 +33,7 @@ async function takeAndSaveSnapshots() {
     let nextSnapshotBlockHeight: number;
     try {
       nextSnapshotBlockHeight = await getNextSnapshotBlockHeight();
-      const { valid, latestBlock } = await checkValidSnapshotBlockHeight(nextSnapshotBlockHeight);
+      const { valid, latestBlock } = await isValidSnapshotBlockHeight(nextSnapshotBlockHeight);
       if (!valid) {
         logger.info(
           `Next snapshot block: ${nextSnapshotBlockHeight}, current block: ${latestBlock.number}. Waiting ${
@@ -104,11 +98,11 @@ async function takeAndSaveSnapshotsAt(block: Block, users: string[]): Promise<nu
   });
 
   if (snapshots.length !== 0) {
-    await saveUserReservesSnapshots(snapshots);
+    await saveSnapshots(snapshots);
   }
 
   if (failures.length !== 0) {
-    await saveUserReservesSnapshotsFailures(failures);
+    await saveSnapshotsFailures(failures);
   }
 
   return snapshots.length;
@@ -116,13 +110,13 @@ async function takeAndSaveSnapshotsAt(block: Block, users: string[]): Promise<nu
 
 async function getNextSnapshotBlockHeight(): Promise<number> {
   const config = await getConfig();
-  const lastSnapshotBlockHeight = await getLastSnapshotBlockHeight();
+  const lastSnapshotBlockHeight = await getLastSnapshotsBlockHeight();
   return lastSnapshotBlockHeight
     ? lastSnapshotBlockHeight + config.settings.snapshotBlockInterval
     : config.settings.snapshotStartBlock;
 }
 
-async function checkValidSnapshotBlockHeight(blockHeight: number): Promise<{
+async function isValidSnapshotBlockHeight(blockHeight: number): Promise<{
   valid: boolean;
   latestBlock: Block;
 }> {
@@ -138,11 +132,11 @@ async function checkValidSnapshotBlockHeight(blockHeight: number): Promise<{
   };
 }
 
-async function resolveSnapshotsFailures() {
+async function resolveFailuresAndRetakeAndSaveSnapshots() {
   const { provider } = await initMode();
   while (true) {
     try {
-      const failures = await getUnresolvedUserReservesSnapshotsFailures();
+      const failures = await getUnresolvedSnapshotsFailures();
       if (failures.length === 0) {
         await sleep(1000 * 60);
         continue;
@@ -157,7 +151,7 @@ async function resolveSnapshotsFailures() {
         const num = await takeAndSaveSnapshotsAt(block, [failure.user]);
 
         if (num !== 0) {
-          await resolveUserReservesSnapshotsFailure(failure.block_height, failure.user);
+          await resolveSnapshotsFailure(failure.block_height, failure.user);
           logger.info(`Succeeded to resolve snapshot failure for ${failure.user} at block ${failure.block_height}`);
         }
       }
@@ -169,8 +163,10 @@ async function resolveSnapshotsFailures() {
 
 async function main() {
   await prepare();
+
+  // invoke parallel
   void takeAndSaveSnapshots();
-  void resolveSnapshotsFailures();
+  void resolveFailuresAndRetakeAndSaveSnapshots();
 }
 
 void main(); // invoke main

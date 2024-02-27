@@ -71,29 +71,27 @@ export async function initUserReservesSnapshotsModel() {
   await UserReservesSnapshotsModel.sync();
 }
 
-export async function getLastSnapshotBlockHeight(): Promise<number | undefined> {
-  const sql = `select max(block_height) as block_height from user_reserves_snapshots;`;
-
+export async function getLastSnapshotsBlockHeight(): Promise<number | undefined> {
   const db = await getDB();
 
-  const data = await db.query<{ block_height: string }>(sql, {
+  const sql = `
+    select max(block_height) as block_height from user_reserves_snapshots;
+  `;
+
+  const data = await db.query<{ block_height?: string }>(sql, {
     type: QueryTypes.SELECT,
   });
 
-  if (data.length === 0) {
-    return undefined;
-  }
-
-  return Number(data[0].block_height);
+  return data[0].block_height ? Number(data[0].block_height) : undefined;
 }
 
-export async function saveUserReservesSnapshots(snapshots: UserReservesSnapshot[]) {
+export async function saveSnapshots(snapshots: UserReservesSnapshot[]) {
   await UserReservesSnapshotsModel.bulkCreate(snapshots as any[], {
     ignoreDuplicates: true,
   });
 }
 
-export async function calcUserPoints(user: string): Promise<string> {
+export async function calcPointsForUser(user: string): Promise<string> {
   const db = await getDB();
 
   const sql = `
@@ -116,7 +114,7 @@ export async function calcUserPoints(user: string): Promise<string> {
   return data[0].points ?? '0';
 }
 
-export async function calcUsersPoints(): Promise<UserPoints[]> {
+export async function calcPointsForUsers(): Promise<UserPoints[]> {
   const db = await getDB();
 
   const sql = `

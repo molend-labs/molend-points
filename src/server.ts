@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { calcUserPoints, calcUsersPoints } from './database/models/user-reserves-snapshots';
+import { calcPointsForUser, calcPointsForUsers } from './database/models/user-reserves-snapshots';
 import { UserPointsData, UserPointsParams, ResponseResult } from './types/server';
 import { getConfig } from './service/mode';
 import { logger } from './service/logger';
@@ -15,7 +15,7 @@ async function handlePoints(_: Request, res: Response<ResponseResult<UserPoints[
   logger.info(`Fetch to /points`);
 
   try {
-    const points = await calcUsersPoints();
+    const points = await calcPointsForUsers();
     res.send({
       success: true,
       message: '',
@@ -45,7 +45,7 @@ async function handleUserPoints(req: Request<UserPointsParams>, res: Response<Re
   }
 
   try {
-    const points = await calcUserPoints(user);
+    const points = await calcPointsForUser(user);
     res.send({
       success: true,
       message: '',

@@ -1,6 +1,6 @@
 import { UserReservesSnapshotsFailure, UserReservesSnapshot } from '../types/models';
 import { getConfig } from '../service/mode';
-import { getAssetPrice, getAssetPriceDecimals, getUserReservesAmount } from './contract';
+import { getAssetPrice, getAssetPriceDecimals, getUserReservesAmounts } from './contract';
 import BigNumber from 'bignumber.js';
 import { sendSlackError } from '../service/notification';
 import { SnapshotReserveData } from '../types/common';
@@ -23,7 +23,7 @@ export async function takeSnapshotForUser({
   const snapshots: UserReservesSnapshot[] = [];
 
   for (const { token, tokenDecimals, tokenSymbol, tokenPriceUsd, aToken, vToken } of reserves) {
-    const { deposited, borrowed } = await getUserReservesAmount(user, aToken, vToken, {
+    const { deposited, borrowed } = await getUserReservesAmounts(user, aToken, vToken, {
       blockTag: blockHeight,
     });
 

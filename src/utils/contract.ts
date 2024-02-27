@@ -42,7 +42,7 @@ export async function batchBalanceOf(
   return contract.batchBalanceOf(users, tokens, options);
 }
 
-export async function getUserReservesAmount(
+export async function getUserReservesAmounts(
   user: string,
   aToken: string,
   vToken: string,

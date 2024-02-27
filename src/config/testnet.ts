@@ -1,5 +1,11 @@
 import { Config } from '../types/config';
 import { requiredEnv } from './helper';
+import BigNumber from 'bignumber.js';
+
+BigNumber.config({
+  DECIMAL_PLACES: 100,
+  ROUNDING_MODE: BigNumber.ROUND_DOWN,
+});
 
 const config: Config = {
   mode: {
