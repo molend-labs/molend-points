@@ -42,7 +42,9 @@ async function takeAndSaveSnapshots() {
       const { valid, latestBlock } = await checkValidSnapshotBlockHeight(nextSnapshotBlockHeight);
       if (!valid) {
         logger.info(
-          `Next snapshot block: ${nextSnapshotBlockHeight}, current block: ${latestBlock.number}. Waiting for snapshot...`
+          `Next snapshot block: ${nextSnapshotBlockHeight}, current block: ${latestBlock.number}. Waiting ${
+            nextSnapshotBlockHeight - latestBlock.number
+          } blocks for snapshot...`
         );
         await sleep(30 * MODE_AVERAGE_BLOCK_TIME);
         continue;
