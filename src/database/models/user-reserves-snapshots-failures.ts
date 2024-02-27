@@ -1,4 +1,4 @@
-import { DataTypes, Model, QueryTypes } from 'sequelize';
+import { DataTypes, Model, QueryTypes, Op } from 'sequelize';
 import { getDB } from '../postgres';
 import { ms2sec, sec2ms } from '../../utils/common';
 import { UserReservesSnapshotsFailure } from '../../types/models';
@@ -58,6 +58,24 @@ export async function getUnresolvedUserReservesSnapshotsFailures(): Promise<User
   return db.query<UserReservesSnapshotsFailure>(sql, {
     type: QueryTypes.SELECT,
   });
+}
+
+export async function resolveUserReservesSnapshotsFailure(blockHeight: string, user: string) {
+  await UserReservesSnapshotsFailuresModel.update(
+    {
+      resolved: true,
+    },
+    {
+      where: {
+        block_height: {
+          [Op.eq]: blockHeight,
+        },
+        user: {
+          [Op.eq]: user,
+        },
+      },
+    }
+  );
 }
 
 export async function saveUserReservesSnapshotsFailures(failures: UserReservesSnapshotsFailure[]) {

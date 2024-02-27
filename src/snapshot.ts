@@ -13,7 +13,9 @@ import { MODE_AVERAGE_BLOCK_TIME, ms2sec, sleep } from './utils/common';
 import { logger } from './service/logger';
 import BigNumber from 'bignumber.js';
 import {
+  getUnresolvedUserReservesSnapshotsFailures,
   initUserReservesSnapshotsFailuresModel,
+  resolveUserReservesSnapshotsFailure,
   saveUserReservesSnapshotsFailures,
 } from './database/models/user-reserves-snapshots-failures';
 
@@ -54,7 +56,7 @@ async function takeSnapshots() {
     try {
       const _block = await provider.getBlock(nextSnapshotBlockHeight);
       if (!_block) {
-        throw Error(`Block not found`);
+        throw Error(`Block ${nextSnapshotBlockHeight} not found`);
       }
       block = _block;
     } catch (e: any) {
@@ -76,11 +78,11 @@ async function takeSnapshots() {
     }
 
     try {
-      await takeAndSaveSnapshotsAt(block, users);
+      const num = await takeAndSaveSnapshotsAt(block, users);
       logger.info(
-        `Succeeded to take snapshot at block ${block.number}. Cost ${(ms2sec(Date.now() - startTime) / 60).toFixed(
-          2
-        )} minutes`
+        `Succeeded to take snapshot${num} at block ${block.number}. Cost ${(
+          ms2sec(Date.now() - startTime) / 60
+        ).toFixed(2)} minutes`
       );
     } catch (e: any) {
       await sendSlackError(`Failed to take snapshot at block ${block.number}`);
@@ -88,7 +90,7 @@ async function takeSnapshots() {
   }
 }
 
-async function takeAndSaveSnapshotsAt(block: Block, users: string[]) {
+async function takeAndSaveSnapshotsAt(block: Block, users: string[]): Promise<number> {
   const reserves = await getReservesData({ blockTag: block.number });
 
   const { snapshots, failures } = await takeSnapshotForUsers({
@@ -105,6 +107,8 @@ async function takeAndSaveSnapshotsAt(block: Block, users: string[]) {
   if (failures.length !== 0) {
     await saveUserReservesSnapshotsFailures(failures);
   }
+
+  return snapshots.length;
 }
 
 async function getNextSnapshotBlockHeight(): Promise<number> {
@@ -131,9 +135,39 @@ async function checkValidSnapshotBlockHeight(blockHeight: number): Promise<{
   };
 }
 
+async function resolveSnapshotsFailures() {
+  const { provider } = await initMode();
+  while (true) {
+    try {
+      const failures = await getUnresolvedUserReservesSnapshotsFailures();
+      if (failures.length === 0) {
+        await sleep(1000 * 60);
+        continue;
+      }
+
+      for (const failure of failures) {
+        const block = await provider.getBlock(Number(failure.block_height));
+        if (!block) {
+          throw Error(`Block ${failure.block_height} not found`);
+        }
+
+        const num = await takeAndSaveSnapshotsAt(block, [failure.user]);
+
+        if (num !== 0) {
+          await resolveUserReservesSnapshotsFailure(failure.block_height, failure.user);
+          logger.info(`Succeeded to resolve snapshot failure for ${failure.user} at block ${failure.block_height}`);
+        }
+      }
+    } catch (e: any) {
+      await sendSlackError(`Failed to resolve snapshot failure: ${e}`);
+    }
+  }
+}
+
 async function main() {
   await prepare();
-  await takeSnapshots();
+  void takeSnapshots();
+  void resolveSnapshotsFailures();
 }
 
 void main(); // invoke main

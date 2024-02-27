@@ -12,7 +12,7 @@ export interface UserReservesSnapshot {
 }
 
 export interface UserReservesSnapshotsFailure {
-  block_height: number;
+  block_height: string;
   block_timestamp: number; // in seconds
   user: string;
   message: string;

@@ -77,7 +77,7 @@ export async function takeSnapshotForUsers({
       } catch (e: any) {
         await sendSlackError(`Failed to take snapshot for user(${user}) at block ${blockHeight}: ${e}`);
         const failure: UserReservesSnapshotsFailure = {
-          block_height: blockHeight,
+          block_height: String(blockHeight),
           block_timestamp: blockTimestamp,
           user,
           message: e.message,
