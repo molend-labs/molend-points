@@ -72,7 +72,7 @@ export async function initUserReservesSnapshotsModel() {
 }
 
 export async function getLastSnapshotBlockHeight(): Promise<number | undefined> {
-  const sql = `select max(block_height) as block_height from user_reserves_snapshots`;
+  const sql = `select max(block_height) as block_height from user_reserves_snapshots;`;
 
   const db = await getDB();
 
@@ -103,10 +103,10 @@ export async function calcUserPoints(user: string): Promise<string> {
       )
     ) as points
     from user_reserves_snapshots
-    where "user" = $user
+    where "user" = $user;
   `;
 
-  const data = await db.query<{ points: string | null }>(sql, {
+  const data = await db.query<{ points?: string }>(sql, {
     type: QueryTypes.SELECT,
     bind: {
       user,
@@ -127,6 +127,7 @@ export async function calcUsersPoints(): Promise<UserPoints[]> {
     ) as points
     from user_reserves_snapshots
     group by "user"
+    order by "points" desc;
   `;
 
   return db.query<UserPoints>(sql, {
