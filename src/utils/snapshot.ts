@@ -70,7 +70,7 @@ export async function takeSnapshotForUsers({
           blockHeight,
           blockTimestamp,
           user,
-          reserves: await transformReserves(reserves),
+          reserves: await transformReserves(reserves, blockHeight),
         });
 
         snapshots.push(...userSnapshots);
@@ -97,12 +97,15 @@ export async function takeSnapshotForUsers({
   };
 }
 
-async function transformReserves(reserves: AggregatedReserveData[]): Promise<SnapshotReserveData[]> {
+async function transformReserves(
+  reserves: AggregatedReserveData[],
+  blockHeight: number
+): Promise<SnapshotReserveData[]> {
   const snapshotReserves: SnapshotReserveData[] = [];
 
   for (const reserve of reserves) {
-    const tokenPriceUsd = await getAssetPrice(reserve.underlyingAsset);
-    const tokenPriceDecimals = await getAssetPriceDecimals(reserve.underlyingAsset);
+    const tokenPriceUsd = await getAssetPrice(reserve.underlyingAsset, { blockTag: blockHeight });
+    const tokenPriceDecimals = await getAssetPriceDecimals(reserve.underlyingAsset, { blockTag: blockHeight });
 
     const _reserve: SnapshotReserveData = {
       token: reserve.underlyingAsset,

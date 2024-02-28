@@ -5,6 +5,7 @@ import UiPoolDataProviderAbi from '../abi/UiPoolDataProvider.json';
 import WalletBalanceProviderAbi from '../abi/WalletBalanceProvider.json';
 import AaveOracleAbi from '../abi/AaveOracle.json';
 import ChainlinkAggregatorAbi from '../abi/ChainlinkAggregator.json';
+import { ViewOptions } from '../types/common';
 
 async function getUiPoolDataProviderContract(): Promise<Contract> {
   const { provider, config } = await initMode();
@@ -26,18 +27,14 @@ async function getChainlinkAggregatorContract(address: string): Promise<Contract
   return new Contract(address, ChainlinkAggregatorAbi.abi, provider);
 }
 
-export async function getReservesData(options: { blockTag?: number } = {}): Promise<AggregatedReserveData[]> {
+export async function getReservesData(options: ViewOptions = {}): Promise<AggregatedReserveData[]> {
   const config = await getConfig();
   const contract = await getUiPoolDataProviderContract();
   const data = await contract.getReservesData(config.molend.LendingPoolAddressesProviderAddress, options);
   return data[0];
 }
 
-export async function batchBalanceOf(
-  users: string[],
-  tokens: string[],
-  options: { blockTag?: number } = {}
-): Promise<bigint[]> {
+export async function batchBalanceOf(users: string[], tokens: string[], options: ViewOptions = {}): Promise<bigint[]> {
   const contract = await getWalletBalanceProviderContract();
   return contract.batchBalanceOf(users, tokens, options);
 }
@@ -46,7 +43,7 @@ export async function getUserReservesAmounts(
   user: string,
   aToken: string,
   vToken: string,
-  options: { blockTag?: number } = {}
+  options: ViewOptions = {}
 ): Promise<{
   deposited: bigint;
   borrowed: bigint;
@@ -58,14 +55,14 @@ export async function getUserReservesAmounts(
   };
 }
 
-export async function getAssetPrice(token: string): Promise<bigint> {
+export async function getAssetPrice(token: string, options: ViewOptions = {}): Promise<bigint> {
   const contract = await getAaveOracleContract();
-  return contract.getAssetPrice(token);
+  return contract.getAssetPrice(token, options);
 }
 
-export async function getAssetPriceDecimals(token: string): Promise<bigint> {
+export async function getAssetPriceDecimals(token: string, options: ViewOptions = {}): Promise<bigint> {
   let contract = await getAaveOracleContract();
-  const source = await contract.getSourceOfAsset(token);
+  const source = await contract.getSourceOfAsset(token, options);
   contract = await getChainlinkAggregatorContract(source);
-  return contract.decimals();
+  return contract.decimals(options);
 }

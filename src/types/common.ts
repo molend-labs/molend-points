@@ -6,3 +6,7 @@ export interface SnapshotReserveData {
   aToken: string;
   vToken: string;
 }
+
+export interface ViewOptions {
+  blockTag?: number;
+}
