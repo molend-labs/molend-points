@@ -17,7 +17,7 @@ async function handlePoints(req: Request, res: Response<ResponseResult<UserPoint
 
   const offset = req.query.offset ? req.query.offset.toString() : null;
   if (offset && !isUint(offset)) {
-    res.send({
+    res.status(400).send({
       success: false,
       message: `Invalid param 'offset'`,
     });
@@ -26,7 +26,7 @@ async function handlePoints(req: Request, res: Response<ResponseResult<UserPoint
 
   const limit = req.query.limit ? req.query.limit.toString() : null;
   if (limit && !isUint(limit)) {
-    res.send({
+    res.status(400).send({
       success: false,
       message: `Invalid param 'limit'`,
     });
