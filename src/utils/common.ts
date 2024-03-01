@@ -8,6 +8,10 @@ export function sec2ms(sec: number): number {
   return sec * 1000;
 }
 
+export function isUint(n: string): boolean {
+  return /^\d+$/.test(n);
+}
+
 export async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
