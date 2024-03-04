@@ -63,14 +63,20 @@ export async function takeSnapshotForUsers({
   const snapshots: UserReservesSnapshot[] = [];
   const failures: UserReservesSnapshotsFailure[] = [];
 
+  let snapshotReserves: SnapshotReserveData[] | undefined;
+
   const fetches = users.map((user) => {
     return async () => {
       try {
+        if (!snapshotReserves) {
+          snapshotReserves = await transformReserves(reserves, blockHeight);
+        }
+
         const userSnapshots = await takeSnapshotForUser({
           blockHeight,
           blockTimestamp,
           user,
-          reserves: await transformReserves(reserves, blockHeight),
+          reserves: snapshotReserves,
         });
 
         snapshots.push(...userSnapshots);

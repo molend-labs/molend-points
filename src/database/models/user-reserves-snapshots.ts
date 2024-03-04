@@ -1,7 +1,8 @@
 import { DataTypes, Model, QueryTypes } from 'sequelize';
 import { getDB } from '../postgres';
 import { ms2sec, sec2ms } from '../../utils/common';
-import { UserPoints, UserReservesSnapshot } from '../../types/models';
+import { UserReservesSnapshot } from '../../types/models';
+import { PointsData, UserPointsData } from '../../types/server';
 
 export class UserReservesSnapshotsModel extends Model {
   declare block_height?: string;
@@ -91,44 +92,70 @@ export async function saveSnapshots(snapshots: UserReservesSnapshot[]) {
   });
 }
 
-export async function calcPointsForUser(user: string): Promise<string> {
+export async function calcPointsForUser(user: string): Promise<PointsData> {
   const db = await getDB();
 
   const sql = `
-    select sum(
-      token_price_usd * (
-        deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier
-      )
-    ) as points
+    select 
+        coalesce(sum(token_price_usd * (deposited_amount * deposited_points_multiplier)), 0) as points_from_deposit,
+        coalesce(sum(token_price_usd * (borrowed_amount * borrowed_points_multiplier)), 0) as points_from_borrow,
+        coalesce(sum(token_price_usd * (deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier)), 0) as total_points
     from user_reserves_snapshots
     where "user" = $user;
   `;
 
-  const data = await db.query<{ points?: string }>(sql, {
+  const data = await db.query<PointsData>(sql, {
     type: QueryTypes.SELECT,
     bind: {
       user,
     },
   });
 
-  return data[0].points ?? '0';
+  return data[0];
 }
 
-export async function calcPointsForUsers(): Promise<UserPoints[]> {
+export async function calcPointsForUsers(options: {
+  offset: string | null;
+  limit: string | null;
+}): Promise<UserPointsData[]> {
   const db = await getDB();
 
   const sql = `
-    select "user", sum(
-      token_price_usd * (
-        deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier
-      )
-    ) as points
+    select 
+        "user",
+        sum(token_price_usd * (deposited_amount * deposited_points_multiplier)) as points_from_deposit,
+        sum(token_price_usd * (borrowed_amount * borrowed_points_multiplier)) as points_from_borrow,
+        sum(token_price_usd * (deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier)) as total_points
     from user_reserves_snapshots
     group by "user"
-    order by "points" desc;
+    order by total_points desc
+    offset $offset
+    limit $limit;
   `;
 
-  return db.query<UserPoints>(sql, {
+  return db.query<UserPointsData>(sql, {
+    type: QueryTypes.SELECT,
+    bind: {
+      offset: options.offset,
+      limit: options.limit,
+    },
+  });
+}
+
+export async function calcTotalPoints(): Promise<PointsData> {
+  const db = await getDB();
+
+  const sql = `
+    select 
+        coalesce(sum(token_price_usd * (deposited_amount * deposited_points_multiplier)), 0) as points_from_deposit,
+        coalesce(sum(token_price_usd * (borrowed_amount * borrowed_points_multiplier)), 0) as points_from_borrow,
+        coalesce(sum(token_price_usd * (deposited_amount * deposited_points_multiplier + borrowed_amount * borrowed_points_multiplier)), 0) as total_points
+    from user_reserves_snapshots;
+  `;
+
+  const data = await db.query<PointsData>(sql, {
     type: QueryTypes.SELECT,
   });
+
+  return data[0];
 }

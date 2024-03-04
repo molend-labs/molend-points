@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { calcPointsForUser, calcPointsForUsers } from './database/models/user-reserves-snapshots';
-import { UserPointsData, UserPointsParams, ResponseResult } from './types/server';
+import { calcPointsForUser, calcPointsForUsers, calcTotalPoints } from './database/models/user-reserves-snapshots';
+import { UserPointsData, UserPointsParams, ResponseResult, PointsData } from './types/server';
 import { getConfig } from './service/mode';
 import { logger } from './service/logger';
 import { ethers } from 'ethers';
-import { UserPoints } from './types/models';
+import { isUint } from './utils/common';
 
 async function handleRoot(_: Request, res: Response) {
   res.send('Molend Points API Server');
@@ -29,15 +29,33 @@ async function handleConfig(
   });
 }
 
-async function handlePoints(_: Request, res: Response<ResponseResult<UserPoints[]>>) {
+async function handlePoints(req: Request, res: Response<ResponseResult<UserPointsData[]>>) {
   logger.info(`Fetch to /points`);
 
+  const offset = req.query.offset ? req.query.offset.toString() : null;
+  if (offset && !isUint(offset)) {
+    res.status(400).send({
+      success: false,
+      message: `Invalid param 'offset'`,
+    });
+    return;
+  }
+
+  const limit = req.query.limit ? req.query.limit.toString() : null;
+  if (limit && !isUint(limit)) {
+    res.status(400).send({
+      success: false,
+      message: `Invalid param 'limit'`,
+    });
+    return;
+  }
+
   try {
-    const points = await calcPointsForUsers();
+    const data = await calcPointsForUsers({ offset, limit });
     res.send({
       success: true,
       message: '',
-      data: points,
+      data,
     });
   } catch (e: any) {
     const message = `Failed to calculate points: ${e.message}`;
@@ -63,12 +81,13 @@ async function handleUserPoints(req: Request<UserPointsParams>, res: Response<Re
   }
 
   try {
-    const points = await calcPointsForUser(user);
+    const data = await calcPointsForUser(user);
     res.send({
       success: true,
       message: '',
       data: {
-        points,
+        user,
+        ...data,
       },
     });
   } catch (e: any) {
@@ -77,6 +96,22 @@ async function handleUserPoints(req: Request<UserPointsParams>, res: Response<Re
     res.status(500).send({
       success: false,
       message,
+    });
+  }
+}
+
+async function handleTotalPoints(_: Request, res: Response<ResponseResult<PointsData>>) {
+  try {
+    const data = await calcTotalPoints();
+    res.send({
+      success: true,
+      message: '',
+      data,
+    });
+  } catch (e: any) {
+    res.status(500).send({
+      success: false,
+      message: `Failed to get total points: ${e.message}`,
     });
   }
 }
@@ -96,6 +131,7 @@ async function main() {
   app.get('/config', handleConfig);
   app.get('/points', handlePoints);
   app.get('/points/:user', handleUserPoints);
+  app.get('/total_points', handleTotalPoints);
 
   app.listen(config.server.port);
 
