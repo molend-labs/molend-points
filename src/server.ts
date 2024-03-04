@@ -13,7 +13,13 @@ async function handleRoot(_: Request, res: Response) {
 
 async function handleConfig(
   _: Request,
-  res: Response<ResponseResult<{ snapshot_start_block: number; snapshot_block_interval: number }>>
+  res: Response<
+    ResponseResult<{
+      snapshot_start_block_timestamp: number;
+      snapshot_start_block: number;
+      snapshot_block_interval: number;
+    }>
+  >
 ) {
   logger.info(`Fetch to /config`);
 
@@ -23,6 +29,7 @@ async function handleConfig(
     success: true,
     message: '',
     data: {
+      snapshot_start_block_timestamp: config.settings.snapshotStartBlockTimestamp,
       snapshot_start_block: config.settings.snapshotStartBlock,
       snapshot_block_interval: config.settings.snapshotBlockInterval,
     },
