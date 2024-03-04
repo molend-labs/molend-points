@@ -18,8 +18,3 @@ export interface UserReservesSnapshotsFailure {
   message: string;
   resolved: boolean;
 }
-
-export interface UserPoints {
-  user: string;
-  points: string;
-}
