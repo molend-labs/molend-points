@@ -11,6 +11,24 @@ async function handleRoot(_: Request, res: Response) {
   res.send('Molend Points API Server');
 }
 
+async function handleConfig(
+  _: Request,
+  res: Response<ResponseResult<{ snapshot_start_block: number; snapshot_block_interval: number }>>
+) {
+  logger.info(`Fetch to /config`);
+
+  const config = await getConfig();
+
+  res.send({
+    success: true,
+    message: '',
+    data: {
+      snapshot_start_block: config.settings.snapshotStartBlock,
+      snapshot_block_interval: config.settings.snapshotBlockInterval,
+    },
+  });
+}
+
 async function handlePoints(_: Request, res: Response<ResponseResult<UserPoints[]>>) {
   logger.info(`Fetch to /points`);
 
@@ -75,6 +93,7 @@ async function main() {
   app.use(cors({ origin: '*' }));
 
   app.get('/', handleRoot);
+  app.get('/config', handleConfig);
   app.get('/points', handlePoints);
   app.get('/points/:user', handleUserPoints);
 
