@@ -41,6 +41,7 @@ const config: Config = {
     },
   },
   settings: {
+    snapshotStartBlockTimestamp: 0, // in second TODO
     snapshotStartBlock: 0, // TODO
     snapshotBlockInterval: 10800, // around 6 hours
     depositedPointsMultiplier: 0.03, // per interval

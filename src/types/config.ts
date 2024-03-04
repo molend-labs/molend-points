@@ -34,6 +34,7 @@ export interface Config {
     };
   };
   settings: {
+    snapshotStartBlockTimestamp: number; // in second
     snapshotStartBlock: number;
     snapshotBlockInterval: number;
     depositedPointsMultiplier: number;
