@@ -114,7 +114,10 @@ export async function calcPointsForUser(user: string): Promise<string> {
   return data[0].points ?? '0';
 }
 
-export async function calcPointsForUsers(): Promise<UserPoints[]> {
+export async function calcPointsForUsers(options: {
+  offset: string | null;
+  limit: string | null;
+}): Promise<UserPoints[]> {
   const db = await getDB();
 
   const sql = `
@@ -125,10 +128,16 @@ export async function calcPointsForUsers(): Promise<UserPoints[]> {
     ) as points
     from user_reserves_snapshots
     group by "user"
-    order by "points" desc;
+    order by "points" desc
+    offset $offset
+    limit $limit;
   `;
 
   return db.query<UserPoints>(sql, {
     type: QueryTypes.SELECT,
+    bind: {
+      offset: options.offset,
+      limit: options.limit,
+    },
   });
 }

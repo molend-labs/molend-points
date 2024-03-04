@@ -6,16 +6,35 @@ import { getConfig } from './service/mode';
 import { logger } from './service/logger';
 import { ethers } from 'ethers';
 import { UserPoints } from './types/models';
+import { isUint } from './utils/common';
 
 async function handleRoot(_: Request, res: Response) {
   res.send('Molend Points API Server');
 }
 
-async function handlePoints(_: Request, res: Response<ResponseResult<UserPoints[]>>) {
+async function handlePoints(req: Request, res: Response<ResponseResult<UserPoints[]>>) {
   logger.info(`Fetch to /points`);
 
+  const offset = req.query.offset ? req.query.offset.toString() : null;
+  if (offset && !isUint(offset)) {
+    res.status(400).send({
+      success: false,
+      message: `Invalid param 'offset'`,
+    });
+    return;
+  }
+
+  const limit = req.query.limit ? req.query.limit.toString() : null;
+  if (limit && !isUint(limit)) {
+    res.status(400).send({
+      success: false,
+      message: `Invalid param 'limit'`,
+    });
+    return;
+  }
+
   try {
-    const points = await calcPointsForUsers();
+    const points = await calcPointsForUsers({ offset, limit });
     res.send({
       success: true,
       message: '',
