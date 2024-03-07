@@ -15,7 +15,7 @@ const config: Config = {
   },
   molend: {
     uiPoolDataProviderAddress: '0x07B3de0F6A72796640Fdc9BdC2058F377aB61b74',
-    LendingPoolAddressesProviderAddress: '0x660c6c5a39252F605a8C97D02d0113cE7517e3FE',
+    lendingPoolAddressesProviderAddress: '0x660c6c5a39252F605a8C97D02d0113cE7517e3FE',
     walletBalanceProviderAddress: '0x12eeF344350D0164447Bf78E72bE1e73851b2954',
     aaveOracleAddress: '0xDb8f22d946E401F800C42dFe55c7b1e812b6D710',
   },

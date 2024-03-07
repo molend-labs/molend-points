@@ -30,7 +30,7 @@ async function getChainlinkAggregatorContract(address: string): Promise<Contract
 export async function getReservesData(options: ViewOptions = {}): Promise<AggregatedReserveData[]> {
   const config = await getConfig();
   const contract = await getUiPoolDataProviderContract();
-  const data = await contract.getReservesData(config.molend.LendingPoolAddressesProviderAddress, options);
+  const data = await contract.getReservesData(config.molend.lendingPoolAddressesProviderAddress, options);
   return data[0];
 }
 
