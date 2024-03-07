@@ -51,7 +51,7 @@ const config: Config = {
   server: {
     port: Number(requiredEnv('SERVER_PORT')),
   },
-  slackWebhook: '', // todo
+  slackWebhook: requiredEnv('SLACK_WEBHOOK'),
 };
 
 export default config;
