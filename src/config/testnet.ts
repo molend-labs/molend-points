@@ -34,13 +34,13 @@ const config: Config = {
       min: 0,
       idle: 10000,
     },
-    // dialectOptions: {
-    //   ssl: {
-    //     // comments this if run database locally
-    //     require: true,
-    //     rejectUnauthorized: false,
-    //   },
-    // },
+    dialectOptions: {
+      ssl: {
+        // comments this if run database locally
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   },
   settings: {
     snapshotStartBlockTimestamp: 1708067932, // in second
