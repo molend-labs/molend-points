@@ -42,8 +42,8 @@ const config: Config = {
     },
   },
   settings: {
-    snapshotStartBlockTimestamp: 1709683201, // in second
-    snapshotStartBlock: 4757809,
+    snapshotStartBlockTimestamp: 1709704801, // in second
+    snapshotStartBlock: 4768609,
     snapshotBlockInterval: 10800, // around 6 hours
     depositedPointsMultiplier: 0.03, // per interval
     borrowedPointsMultiplier: 0.3, // per interval

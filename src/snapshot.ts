@@ -81,7 +81,7 @@ async function takeAndSaveSnapshots() {
         }. Cost ${(ms2sec(Date.now() - startTime) / 60).toFixed(2)} minutes`
       );
     } catch (e: any) {
-      await sendSlackError(`Failed to take snapshot at block ${block.number}`);
+      await sendSlackError(`Failed to take snapshot at block ${block.number}: ${e}`);
     }
   }
 }
