@@ -11,16 +11,17 @@ const config: Config = {
   mode: {
     chainName: 'mode-mainnet',
     chainId: 34443,
-    rpcUrl: '', // TODO
+    rpcUrl: 'https://mainnet.mode.network',
   },
   molend: {
-    uiPoolDataProviderAddress: '', // TODO
-    LendingPoolAddressesProviderAddress: '', // TODO
-    walletBalanceProviderAddress: '', // TODO
-    aaveOracleAddress: '', // TODO
+    uiPoolDataProviderAddress: '0x07B3de0F6A72796640Fdc9BdC2058F377aB61b74',
+    lendingPoolAddressesProviderAddress: '0x660c6c5a39252F605a8C97D02d0113cE7517e3FE',
+    walletBalanceProviderAddress: '0x12eeF344350D0164447Bf78E72bE1e73851b2954',
+    aaveOracleAddress: '0xDb8f22d946E401F800C42dFe55c7b1e812b6D710',
   },
   subgraph: {
-    apiUrl: '', // TODO
+    apiUrl:
+      'https://api.goldsky.com/api/public/project_clsqwp249pal8012pavf34uxn/subgraphs/molend-protocol-mode/0.0.1/gn',
   },
   database: {
     host: requiredEnv('DB_HOST'),
@@ -41,8 +42,8 @@ const config: Config = {
     },
   },
   settings: {
-    snapshotStartBlockTimestamp: 0, // in second TODO
-    snapshotStartBlock: 0, // TODO
+    snapshotStartBlockTimestamp: 1709704801, // in second
+    snapshotStartBlock: 4768609,
     snapshotBlockInterval: 10800, // around 6 hours
     depositedPointsMultiplier: 0.03, // per interval
     borrowedPointsMultiplier: 0.3, // per interval
@@ -50,6 +51,7 @@ const config: Config = {
   server: {
     port: Number(requiredEnv('SERVER_PORT')),
   },
+  slackWebhook: requiredEnv('SLACK_WEBHOOK'),
 };
 
 export default config;

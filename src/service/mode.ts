@@ -16,8 +16,18 @@ let config: Config | undefined;
 export async function getConfig(): Promise<Config> {
   if (!config) {
     const env = requiredEnv('ENV');
-    const module = await require(`../config/${env}.ts`);
-    return module.default;
+    let module;
+    try {
+      module = await import(`../config/${env}.ts`);
+    } catch (e: any) {
+      if (e.message.includes('Cannot find module')) {
+        module = await import(`../config/${env}.js`);
+      } else {
+        throw e;
+      }
+    }
+    config = module.default as Config;
   }
+
   return config;
 }

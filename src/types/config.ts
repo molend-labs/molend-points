@@ -8,7 +8,7 @@ export interface Config {
   };
   molend: {
     uiPoolDataProviderAddress: string;
-    LendingPoolAddressesProviderAddress: string;
+    lendingPoolAddressesProviderAddress: string;
     walletBalanceProviderAddress: string;
     aaveOracleAddress: string;
   };
