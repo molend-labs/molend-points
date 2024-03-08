@@ -50,7 +50,7 @@ const config: Config = {
     borrowedPointsMultiplier: 0.3, // per interval
   },
   server: {
-    port: Number(requiredEnv('SERVER_PORT')),
+    port: Number(requiredEnv('PORT')),
   },
 };
 
