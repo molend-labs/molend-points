@@ -160,12 +160,10 @@ async function resolveFailuresAndRetakeAndSaveSnapshots() {
   }
 }
 
-async function main() {
+export async function runSnapshot() {
   await prepare();
 
   // invoke parallel
   void takeAndSaveSnapshots();
   void resolveFailuresAndRetakeAndSaveSnapshots();
 }
-
-void main(); // invoke main

@@ -123,7 +123,7 @@ async function handleTotalPoints(_: Request, res: Response<ResponseResult<Points
   }
 }
 
-async function main() {
+export async function runServer() {
   const config = await getConfig();
 
   if (!config.server) {
@@ -144,5 +144,3 @@ async function main() {
 
   logger.info(`API server start at port: ${config.server.port}`);
 }
-
-void main();
