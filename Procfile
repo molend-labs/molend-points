@@ -1,1 +1,1 @@
-web: yarn start:mainnet
+web: yarn start

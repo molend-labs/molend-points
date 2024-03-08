@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "description": "Molend Points",
   "scripts": {
-    "start:testnet": "ENV=testnet ts-node src/main.ts",
-    "start:mainnet": "ENV=mainnet node dist/main.js",
+    "start:testnet": "ENV=testnet yarn start",
+    "start:mainnet": "ENV=mainnet yarn start",
+    "start": "node dist/main.js",
     "build": "rm -rf dist && tsc",
     "lint": "eslint src/**/*.ts --fix",
     "prettier": "prettier src/**/*.ts --write",
